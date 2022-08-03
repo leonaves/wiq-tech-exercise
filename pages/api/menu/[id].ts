@@ -1,50 +1,41 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { promises as fs } from 'fs';
 
 import { Product } from '../../types';
+import * as MenuData from './data.json';
+import path from 'path';
 
 export type ProductResponse = {
   products: Array<Product>;
 };
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ProductResponse>
 ) {
-  throw new Error('Internal Server Error');
+  const { id: reqId } = req.query;
 
-  res.status(200).json({
-    products: [
-      {
-        id: 1,
-        name: 'Bread',
-        description: 'Delicious bread with olive oil.',
-        price: 340,
-      },
-      {
-        id: 2,
-        name: 'Croquettes',
-        description: 'Croquettes with ham and cheese and stuff.',
-        price: 520,
-      },
-      {
-        id: 3,
-        name: 'Soup',
-        description: 'Soup of the day, ask the waiter I guess.',
-        price: 450,
-      },
-      {
-        id: 4,
-        name: 'Olives',
-        description: "Just olives, if you're into that kind of thing.",
-        price: 330,
-      },
-      {
-        id: 5,
-        name: 'Calamari',
-        description: "It's like breaded squid.",
-        price: 590,
-      },
-    ],
-  });
+  try {
+    const menuData: typeof MenuData = await fs
+      .readFile(
+        path.resolve(process.cwd(), 'pages', 'api', 'menu', 'data.json')
+      )
+      .then((data) => data.toString())
+      .then(JSON.parse);
+
+    const products = menuData.menus.reduce(
+      (products: Array<Product>, menu) =>
+        menu.id.toString() === reqId
+          ? [...products, ...menu.products]
+          : products,
+      []
+    );
+
+    res.status(200).json({ products });
+  } catch (e) {
+    console.log('[API Error]:', e);
+
+    res.status(500).end();
+  }
 }

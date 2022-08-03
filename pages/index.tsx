@@ -10,7 +10,7 @@ import fetcher from '../utils/swr-fetcher';
 import Link from 'next/link';
 
 const Home: NextPage = () => {
-  const { data: menuData } = useSwr<MenuResponse>('/api/menus', fetcher);
+  const { data: menuData, error } = useSwr<MenuResponse>('/api/menus', fetcher);
 
   return (
     <>
@@ -23,6 +23,7 @@ const Home: NextPage = () => {
         <PageHeader>Marina Hotel and Restaurant</PageHeader>
 
         <MenuSection>
+          {error && error.message}
           {menuData?.menus?.map((menu) => (
             <Link key={menu.id} href={`/menu/${menu.id}`}>
               <Card href={`/menu/${menu.id}`}>{menu.name}</Card>

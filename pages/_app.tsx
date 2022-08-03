@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { AppProps } from 'next/app';
+import partition from 'lodash.partition';
 
 import { BasketProduct, Product } from './types';
 import { Basket } from '../components/Basket';
@@ -24,7 +25,14 @@ function MyApp({ Component, pageProps }: AppProps) {
   const addToCart =
     ({ id, name, price }: Product) =>
     () => {
-      setBasket([...basket, { productId: id, name, price, quantity: 1 }]);
+      const isProduct = ({ productId }: BasketProduct) => productId === id;
+      const [[product], others] = partition(basket, isProduct);
+
+      if (!product) {
+        setBasket([...basket, { productId: id, name, price, quantity: 1 }]);
+      } else {
+        setBasket([...others, { ...product, quantity: product.quantity + 1 }]);
+      }
     };
 
   const toggleBasketModal = () => setBasketVisible(!basketVisible);

@@ -43,11 +43,13 @@ export const PageHeader: React.FC<{
 }> = ({ children }) => {
   const { basket, toggleBasketModal } = useContext(BasketContext);
 
+  const basketSize = basket?.reduce((acc, { quantity }) => quantity + acc, 0);
+
   return (
     <Container>
       <ShoppingCart onClick={toggleBasketModal}>
         <FontAwesomeIcon icon={solid('cart-shopping')} />
-        {basket?.length ? <CartBadge>{basket?.length}</CartBadge> : null}
+        {basketSize ? <CartBadge>{basketSize}</CartBadge> : null}
       </ShoppingCart>
       <h1>{children}</h1>
     </Container>
