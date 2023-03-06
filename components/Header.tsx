@@ -41,9 +41,9 @@ const CartBadge = styled.span`
 export const PageHeader: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { basket, toggleBasketModal } = useContext(BasketContext);
+  const { products, toggleBasketModal } = useContext(BasketContext);
 
-  const basketSize = basket?.reduce((acc, { quantity }) => quantity + acc, 0);
+  const basketSize = products?.reduce((acc, { quantity }) => quantity + acc, 0);
 
   return (
     <Container>

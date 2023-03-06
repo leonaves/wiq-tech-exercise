@@ -13,3 +13,8 @@ export type BasketProduct = {
   price: number;
   quantity: number;
 };
+
+export type Discount = {
+  name: string;
+  discount: number;
+};

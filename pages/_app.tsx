@@ -1,46 +1,62 @@
-import React, { useState } from 'react';
-import type { AppProps } from 'next/app';
+import React, {useEffect, useState} from 'react';
+import type {AppProps} from 'next/app';
 import partition from 'lodash.partition';
 
-import { BasketProduct, Product } from './types';
-import { Basket } from '../components/Basket';
+import {BasketProduct, Discount, Product} from './types';
+import {Basket} from '../components/Basket';
 
 import '../styles/globals.css';
+import fetcher from "../utils/swr-fetcher";
+import {useUpdateDiscounts} from "../hooks/useUpdateDiscounts";
+
 
 interface IBasketState {
-  basket?: Array<BasketProduct>;
+  products: Array<BasketProduct>;
+  discounts?: Array<Discount>;
   addToCart: (p: Product) => () => void;
   toggleBasketModal: () => void;
 }
 
 export const BasketContext = React.createContext<IBasketState>({
-  addToCart: () => () => {},
-  toggleBasketModal: () => {},
+  products: [],
+  addToCart: () => () => {
+  },
+  toggleBasketModal: () => {
+  },
 });
 
-function MyApp({ Component, pageProps }: AppProps) {
-  const [basket, setBasket] = useState<Array<BasketProduct>>([]);
+function MyApp({Component, pageProps}: AppProps) {
+  const [products, setProducts] = useState<Array<BasketProduct>>([]);
+  const [discounts, setDiscounts] = useState<Array<Discount>>([]);
   const [basketVisible, setBasketVisible] = useState<boolean>(false);
 
-  const addToCart =
-    ({ id, name, price }: Product) =>
-    () => {
-      const isProduct = ({ productId }: BasketProduct) => productId === id;
-      const [[product], others] = partition(basket, isProduct);
+  /**
+   *  Update the discounts whenever the products change
+   */
+  useUpdateDiscounts(products, setDiscounts);
 
-      if (!product) {
-        setBasket([...basket, { productId: id, name, price, quantity: 1 }]);
-      } else {
-        setBasket([...others, { ...product, quantity: product.quantity + 1 }]);
-      }
-    };
+  /**
+   * Defines the addToCart context
+   */
+  const addToCart =
+    ({id, name, price}: Product) =>
+      () => {
+        const isExistingProduct = ({productId}: BasketProduct) => productId === id;
+        const [[existingProduct], others] = partition(products, isExistingProduct);
+
+        if (!existingProduct) {
+          setProducts([...products, {productId: id, name, price, quantity: 1}]);
+        } else {
+          setProducts([...others, {...existingProduct, quantity: existingProduct.quantity + 1}]);
+        }
+      };
 
   const toggleBasketModal = () => setBasketVisible(!basketVisible);
 
   return (
-    <BasketContext.Provider value={{ basket, addToCart, toggleBasketModal }}>
+    <BasketContext.Provider value={{products, discounts, addToCart, toggleBasketModal}}>
       <Component {...pageProps} />
-      {basketVisible && <Basket />}
+      {basketVisible && <Basket/>}
     </BasketContext.Provider>
   );
 }
